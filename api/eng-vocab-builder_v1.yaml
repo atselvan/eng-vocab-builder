@@ -1,0 +1,134 @@
+openapi: 3.0.2
+info:
+  title: English Vocabulary Builder
+  version: 1.0.0
+  contact:
+    name: Allan Tony Selvan
+    email: allantony2008@gmail.com
+  description: |
+    The API can be used to get the meaning of a word and for storing the meaning of a word as a flash card in a Anki Deck.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:8000/{basePath}
+    description: localhost
+    variables:
+      basePath:
+        default: api/v1
+tags:
+  - name: words
+    description: Manage English Words
+paths:
+  /words/{word}:
+    get:
+      tags:
+        - "words"
+      summary: Get the meaning of a word
+      parameters: 
+        - in: path
+          name: word
+          schema:
+            type: string
+          required: true
+          description: A English Word
+      responses:
+        '200':
+          description: Get the meaning of a word
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Word'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - "words"
+      summary: Store the word an its meaning as a flash card in Anki.
+      parameters: 
+        - in: path
+          name: word
+          schema:
+            type: string
+          required: true
+          description: A English Word
+      responses:
+        '200':
+          description: Get the meaning of a word
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+    Word:
+      type: object
+      properties:
+        word:
+          type: string
+        meanings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Meaning'
+    Meaning:
+      type: object
+      properties:
+        partOfSpeech: 
+          type: string
+        definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Definition'
+    Definition:
+      type: object
+      properties:
+        definition:
+          type: string
+        example:
+          type: string
+        synonyms:
+          type: string
+          items:
+            type: string
+        antonyms:
+          type: string
+          items:
+            type: string
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        statusCode:
+          type: integer
+        error:
+          type: string
+
+                
