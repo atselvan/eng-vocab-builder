@@ -41,8 +41,13 @@ func (s *server) PostWordsWord(c *gin.Context, word string) {
 	}
 
 	// add word to anki deck
-	restErr = addWordToAnki(s.cnf, meaning)
-	if restErr != nil {
+	if restErr = addWordToAnki(s.cnf, meaning);restErr != nil {
+		c.JSON(restErr.StatusCode, restErr)
+		return
+	}
+
+	// sync data to Anki Web
+	if restErr = syncAnki(s.cnf);restErr != nil {
 		c.JSON(restErr.StatusCode, restErr)
 		return
 	}
@@ -57,15 +62,14 @@ func getMeaningOfWord(word string) (*dictionaryapi.Word, *errors.RestErr) {
 }
 
 // checkDeck checks if the deck exists, if not the functions creates the deck.
-func checkDeck(cnf *Config,) *errors.RestErr {
+func checkDeck(cnf *Config) *errors.RestErr {
 	client := ankiconnect.NewClient().SetURL(cnf.AnkiConnectURL)
 	decks, restErr := client.Decks.GetAll()
 	if restErr != nil {
 		return restErr
 	}
 	if !slice.EntryExists(*decks, cnf.AnkiDeckName) {
-		restErr := client.Decks.Create(cnf.AnkiDeckName)
-		if restErr != nil {
+		if restErr := client.Decks.Create(cnf.AnkiDeckName); restErr != nil {
 			return restErr
 		}
 	}
@@ -107,8 +111,16 @@ func addWordToAnki(cnf *Config, word *dictionaryapi.Word) *errors.RestErr {
 	}
 
 	client := ankiconnect.NewClient().SetURL(cnf.AnkiConnectURL)
-	restErr := client.Notes.Add(note)
-	if restErr != nil {
+	if restErr := client.Notes.Add(note); restErr != nil {
+		return restErr
+	}
+	return nil
+}
+
+// syncAnki sync local data to Anki web
+func syncAnki(cnf *Config) *errors.RestErr {
+	client := ankiconnect.NewClient().SetURL(cnf.AnkiConnectURL)
+	if restErr := client.Sync.Trigger(); restErr != nil {
 		return restErr
 	}
 	return nil
